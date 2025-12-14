@@ -1,4 +1,4 @@
-import { useQuery } from "@apollo/client"
+import { useQuery } from "@apollo/client/react"
 import { GET_EPISODES } from "@/graphql/queries"
 import { EpisodeProps } from "@/interfaces"
 import EpisodeCard from "@/components/common/EpisodeCard"
@@ -6,10 +6,19 @@ import { useEffect, useState } from "react"
 
 
 
+type EpisodesQuery = {
+  episodes: {
+    info: {
+      pages: number
+    }
+    results: EpisodeProps[]
+  }
+}
+
 const Home: React.FC = () => {
 
   const [page, setPage] = useState<number>(1)
-  const { loading, error, data, refetch } = useQuery(GET_EPISODES, {
+  const { loading, error, data, refetch } = useQuery<EpisodesQuery>(GET_EPISODES, {
     variables: {
       page: page
     }
@@ -22,11 +31,11 @@ const Home: React.FC = () => {
   if (loading) return <h1>Loading...</h1>
   if (error) return <h1>Error</h1>
 
-  const results = data?.episodes.results
-  const info = data?.episodes.info
+  const results = data?.episodes?.results ?? []
+  const info = data?.episodes?.info ?? { pages: 1 }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#A3D5E0] to-[#F4F4F4] text-gray-800">
+    <div className="min-h-screen flex flex-col bg-linear-to-b from-[#A3D5E0] to-[#F4F4F4] text-gray-800">
       {/* Header */}
       <header className="bg-[#4CA1AF] text-white py-6 text-center shadow-md">
         <h1 className="text-4xl font-bold tracking-wide">Rick and Morty Episodes</h1>
@@ -34,14 +43,11 @@ const Home: React.FC = () => {
       </header>
 
       {/* Main Content */}
-      <main className="flex-grow p-6">
+      <main className="grow p-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {results && results.map(({ id, name, air_date, episode }: EpisodeProps, key: number) => (
+          {results && results.map((episodeItem: EpisodeProps, key: number) => (
             <EpisodeCard
-              id={id}
-              name={name}
-              air_date={air_date}
-              episode={episode}
+              {...episodeItem}
               key={key}
             />
           ))}
